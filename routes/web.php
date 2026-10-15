@@ -25,6 +25,7 @@ Route::middleware(config('db-deeper.dashboard.middleware', ['web', 'auth', 'can:
         Route::get('/live/database', DatabaseStatsLiveController::class)->name('live.database');
         Route::get('/backups', BackupManagementController::class)->name('backups.index');
         Route::get('/live/backups', BackupLiveController::class)->name('live.backups');
+        Route::post('/backups/diagnose', [BackupController::class, 'diagnose'])->name('backups.diagnose');
         Route::post('/backups/run', [BackupController::class, 'store'])->name('backups.run');
         Route::get('/backups/{backup}/download', [BackupController::class, 'download'])->name('backups.download');
         Route::post('/backups/schedules', [BackupScheduleController::class, 'store'])->name('backups.schedules.store');

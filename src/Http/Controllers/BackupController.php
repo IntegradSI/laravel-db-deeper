@@ -3,17 +3,28 @@
 namespace Integrad\DbDeeper\Http\Controllers;
 
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Integrad\DbDeeper\Http\Requests\RunBackupRequest;
 use Integrad\DbDeeper\Models\Backup;
+use Integrad\DbDeeper\Services\BackupPreflightService;
 use Integrad\DbDeeper\Services\BackupRunService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class BackupController
 {
+    public function diagnose(RunBackupRequest $request, BackupPreflightService $preflight): JsonResponse
+    {
+        return response()->json($preflight->diagnose(
+            $request->string('connection_name')->toString(),
+            $request->string('disk_name')->toString(),
+            $request->input('destination_path'),
+        ));
+    }
+
     public function store(RunBackupRequest $request, BackupRunService $backupRuns): RedirectResponse
     {
         try {

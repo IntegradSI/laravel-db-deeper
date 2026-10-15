@@ -16,6 +16,8 @@ return [
         'connection' => null,
         'encryption_key' => null,
         'chunk_size' => 1048576,
+        'mysql_dump_binary' => 'mysqldump',
+        'pg_dump_binary' => 'pg_dump',
     ],
 
     'monitoring' => [

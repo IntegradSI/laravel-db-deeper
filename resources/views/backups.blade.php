@@ -52,7 +52,7 @@
                 @elseif ($disks === [])
                     <div role="alert" class="alert alert-warning"><i data-lucide="hard-drive" class="size-5" aria-hidden="true"></i><span>Nenhum disco do Laravel está configurado para receber o arquivo.</span></div>
                 @else
-                    <form method="POST" action="{{ route('db-deeper.backups.run', ['tab' => 'manual']) }}" class="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                    <form method="POST" action="{{ route('db-deeper.backups.run', ['tab' => 'manual']) }}" data-backup-preflight-form data-diagnostic-url="{{ route('db-deeper.backups.diagnose') }}" class="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
                         @csrf
                         <fieldset class="fieldset">
                             <label for="manual-connection" class="label">Banco de dados</label>
@@ -77,8 +77,22 @@
                             <input id="manual-path" name="destination_path" type="text" class="input input-sm w-full {{ $errors->has('destination_path') ? 'input-error' : '' }}" maxlength="500" value="{{ old('destination_path', config('db-deeper.backup.path', 'database-backups')) }}" placeholder="database-backups" aria-invalid="{{ $errors->has('destination_path') ? 'true' : 'false' }}" @if ($errors->has('destination_path')) aria-describedby="manual-path-error" @endif>
                             @error('destination_path')<span id="manual-path-error" class="text-sm text-error">{{ $message }}</span>@enderror
                         </fieldset>
+                        <div class="sm:col-span-2 rounded-box border border-base-300 bg-base-200/40 p-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex items-start gap-3">
+                                    <i data-lucide="scan-search" class="mt-0.5 size-5 shrink-0 text-base-content/65" aria-hidden="true"></i>
+                                    <div><h4 class="font-semibold">Verifique antes de executar</h4><p class="mt-1 max-w-2xl text-sm leading-5 text-base-content/65">O diagnóstico testa chave, conexão, ferramenta de exportação e escrita no destino. Ele não gera um backup.</p></div>
+                                </div>
+                                <button type="button" class="btn btn-sm" data-run-backup-diagnostic><i data-lucide="activity" class="size-4" aria-hidden="true"></i>Diagnosticar agora</button>
+                            </div>
+                            <p class="mt-3 text-xs leading-5 text-base-content/55">Para validar o destino, será criado e removido um arquivo temporário aleatório de 32 bytes na pasta selecionada. Nenhum dado do banco é escrito nele.</p>
+                            <div class="mt-4 space-y-3" data-backup-diagnostic-results aria-live="polite" hidden>
+                                <div role="status" class="alert" data-backup-diagnostic-summary></div>
+                                <ul class="grid gap-2 sm:grid-cols-2" data-backup-diagnostic-checks></ul>
+                            </div>
+                        </div>
                         <div class="flex flex-wrap items-center gap-3 sm:col-span-2">
-                            <button type="submit" class="btn btn-primary btn-sm" @disabled($keyStatus['source'] === 'missing')><i data-lucide="play" class="size-4" aria-hidden="true"></i>Iniciar backup</button>
+                            <button type="submit" class="btn btn-primary btn-sm" data-backup-submit disabled><i data-lucide="play" class="size-4" aria-hidden="true"></i>Iniciar backup</button>
                             <span class="text-xs text-base-content/55">Drivers compatíveis: MySQL, MariaDB e PostgreSQL.</span>
                         </div>
                     </form>

@@ -29,7 +29,7 @@ import {
     UserRoundCheck,
 } from 'lucide';
 
-const icons = {
+const lucideIcons = {
     Activity,
     Archive,
     CircleAlert,
@@ -59,7 +59,7 @@ const icons = {
     UserRoundCheck,
 };
 
-const renderIcons = (root = document) => createIcons({ icons, root });
+const renderIcons = (root = document) => createIcons({ icons: lucideIcons, root });
 
 renderIcons();
 
@@ -135,6 +135,187 @@ if (backupTabList instanceof HTMLElement) {
     });
 }
 
+const backupPreflightForm = document.querySelector('[data-backup-preflight-form]');
+
+if (backupPreflightForm instanceof HTMLFormElement) {
+    const diagnosticButton = backupPreflightForm.querySelector('[data-run-backup-diagnostic]');
+    const submitButton = backupPreflightForm.querySelector('[data-backup-submit]');
+    const results = backupPreflightForm.querySelector('[data-backup-diagnostic-results]');
+    const summary = backupPreflightForm.querySelector('[data-backup-diagnostic-summary]');
+    const checksList = backupPreflightForm.querySelector('[data-backup-diagnostic-checks]');
+    const fields = ['connection_name', 'disk_name', 'destination_path'];
+    let verifiedSignature = null;
+
+    const currentSignature = () => fields
+        .map((name) => backupPreflightForm.elements.namedItem(name)?.value ?? '')
+        .join('\u001f');
+
+    const invalidateDiagnostic = () => {
+        verifiedSignature = null;
+
+        if (submitButton instanceof HTMLButtonElement) {
+            submitButton.disabled = true;
+        }
+
+        if (results instanceof HTMLElement) {
+            results.hidden = true;
+        }
+    };
+
+    const showSummary = (message, state, reference = null) => {
+        if (!(summary instanceof HTMLElement)) {
+            return;
+        }
+
+        const summaryClasses = {
+            success: 'alert alert-success items-start',
+            info: 'alert alert-info items-start',
+            error: 'alert alert-error items-start',
+        };
+        summary.className = summaryClasses[state] ?? summaryClasses.error;
+        summary.replaceChildren();
+        const icon = document.createElement('i');
+        icon.dataset.lucide = state === 'success' ? 'circle-check' : state === 'info' ? 'activity' : 'circle-alert';
+        icon.className = 'mt-0.5 size-5 shrink-0';
+        icon.setAttribute('aria-hidden', 'true');
+        const text = document.createElement('span');
+        text.className = 'text-sm leading-5';
+        text.textContent = reference ? `${message} Referência: ${reference}.` : message;
+        summary.append(icon, text);
+        renderIcons(summary);
+    };
+
+    const renderChecks = (checks) => {
+        if (!(checksList instanceof HTMLUListElement)) {
+            return;
+        }
+
+        checksList.replaceChildren();
+
+        checks.forEach((check) => {
+            const passed = check.status === 'passed';
+            const item = document.createElement('li');
+            item.className = 'flex min-w-0 items-start gap-3 rounded-field border border-base-300 bg-base-100 p-3';
+            const icon = document.createElement('i');
+            icon.dataset.lucide = passed ? 'circle-check' : 'circle-alert';
+            icon.className = passed ? 'mt-0.5 size-5 shrink-0 text-success' : 'mt-0.5 size-5 shrink-0 text-error';
+            icon.setAttribute('aria-hidden', 'true');
+            const content = document.createElement('div');
+            content.className = 'min-w-0';
+            const label = document.createElement('p');
+            label.className = 'font-medium';
+            label.textContent = check.label;
+            const message = document.createElement('p');
+            message.className = 'mt-1 break-words text-sm leading-5 text-base-content/65';
+            message.textContent = check.message;
+            content.append(label, message);
+            item.append(icon, content);
+            checksList.append(item);
+        });
+
+        renderIcons(checksList);
+    };
+
+    backupPreflightForm.addEventListener('input', invalidateDiagnostic);
+    backupPreflightForm.addEventListener('change', invalidateDiagnostic);
+
+    diagnosticButton?.addEventListener('click', async () => {
+        if (!(diagnosticButton instanceof HTMLButtonElement) || !(results instanceof HTMLElement)) {
+            return;
+        }
+
+        if (!backupPreflightForm.reportValidity()) {
+            return;
+        }
+
+        const signature = currentSignature();
+        const token = backupPreflightForm.querySelector('input[name="_token"]')?.value;
+        const endpoint = new URL(backupPreflightForm.dataset.diagnosticUrl ?? '', window.location.href);
+
+        if (endpoint.origin !== window.location.origin) {
+            showSummary('O endereço do diagnóstico é inválido. Atualize a página e tente novamente.', 'error');
+            results.hidden = false;
+            return;
+        }
+
+        diagnosticButton.disabled = true;
+        diagnosticButton.setAttribute('aria-busy', 'true');
+        diagnosticButton.textContent = 'Verificando…';
+        results.hidden = false;
+        if (checksList instanceof HTMLElement) {
+            checksList.replaceChildren();
+        }
+        showSummary('Verificando a configuração selecionada. Nenhum dump será executado.', 'info');
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                body: new FormData(backupPreflightForm),
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+                },
+                credentials: 'same-origin',
+                cache: 'no-store',
+            });
+
+            if (!response.ok) {
+                throw new Error('diagnostic_request_failed');
+            }
+
+            const diagnostic = await response.json();
+
+            if (signature !== currentSignature()) {
+                results.hidden = false;
+                showSummary('As opções mudaram durante a verificação. Execute o diagnóstico novamente.', 'error');
+                return;
+            }
+
+            if (!Array.isArray(diagnostic.checks) || typeof diagnostic.ready !== 'boolean') {
+                throw new Error('diagnostic_response_invalid');
+            }
+
+            renderChecks(diagnostic.checks);
+            showSummary(
+                diagnostic.ready
+                    ? 'Tudo pronto para iniciar o backup.'
+                    : 'Há itens que precisam ser corrigidos antes de iniciar o backup.',
+                diagnostic.ready ? 'success' : 'error',
+                diagnostic.diagnostic_id,
+            );
+            verifiedSignature = diagnostic.ready ? signature : null;
+
+            if (submitButton instanceof HTMLButtonElement) {
+                submitButton.disabled = !diagnostic.ready;
+            }
+        } catch {
+            verifiedSignature = null;
+            results.hidden = false;
+            showSummary('Não foi possível concluir o diagnóstico. Confira sua conexão, atualize a página e tente novamente.', 'error');
+        } finally {
+            diagnosticButton.disabled = false;
+            diagnosticButton.removeAttribute('aria-busy');
+            diagnosticButton.replaceChildren();
+            const icon = document.createElement('i');
+            icon.dataset.lucide = 'activity';
+            icon.className = 'size-4';
+            icon.setAttribute('aria-hidden', 'true');
+            diagnosticButton.append(icon, document.createTextNode('Diagnosticar novamente'));
+            renderIcons(diagnosticButton);
+        }
+    });
+
+    backupPreflightForm.addEventListener('submit', (event) => {
+        if (verifiedSignature !== currentSignature()) {
+            event.preventDefault();
+            invalidateDiagnostic();
+            results.hidden = false;
+            showSummary('Execute o diagnóstico novamente antes de iniciar o backup.', 'error');
+        }
+    });
+}
+
 document.querySelectorAll('[data-copy-target]').forEach((button) => {
     button.addEventListener('click', async () => {
         const target = document.getElementById(button.dataset.copyTarget ?? '');
@@ -200,7 +381,13 @@ if (livePanel instanceof HTMLElement) {
 
     const updateStatusDot = (state) => {
         if (statusDot instanceof HTMLElement) {
-            statusDot.className = `status status-${state} status-sm`;
+            const statusClasses = {
+                info: 'status status-info status-sm',
+                success: 'status status-success status-sm',
+                warning: 'status status-warning status-sm',
+                error: 'status status-error status-sm',
+            };
+            statusDot.className = statusClasses[state] ?? 'status status-neutral status-sm';
         }
     };
 
