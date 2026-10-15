@@ -1,10 +1,55 @@
 <div class="grid gap-6" data-live-fragment>
-    @if (! $monitoring['connected'])
-        <div role="alert" class="alert alert-error">
-            <i data-lucide="circle-alert" class="size-5" aria-hidden="true"></i>
-            <div><h2 class="font-semibold">Banco sem resposta</h2><p class="text-sm">{{ $monitoring['slow_query_note'] }}</p></div>
-        </div>
-    @endif
+    <section aria-label="Resumo operacional" class="grid gap-4 xl:grid-cols-2">
+        <article @class(['card card-border bg-base-100', 'border-success/30' => $monitoring['connected'], 'border-error/30' => ! $monitoring['connected']])>
+            <div class="card-body gap-4 p-4 sm:p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span @class(['flex size-10 items-center justify-center rounded-field', 'bg-success/10 text-success' => $monitoring['connected'], 'bg-error/10 text-error' => ! $monitoring['connected']])>
+                            <i data-lucide="database" class="size-5" aria-hidden="true"></i>
+                        </span>
+                        <div>
+                            <p class="text-xs font-medium text-base-content/55">Saúde da conexão</p>
+                            <h2 class="text-base font-semibold">{{ $monitoring['connected'] ? 'Banco respondendo' : 'Banco sem resposta' }}</h2>
+                        </div>
+                    </div>
+                    <span @class(['badge badge-soft', 'badge-success' => $monitoring['connected'], 'badge-error' => ! $monitoring['connected']])>
+                        {{ $monitoring['connected'] ? 'Operacional' : 'Indisponível' }}
+                    </span>
+                </div>
+                <div class="flex flex-wrap items-end justify-between gap-3 border-t border-base-200 pt-3">
+                    <div>
+                        <p class="text-sm font-medium">{{ $databaseConnection }}</p>
+                        <p class="mt-1 text-xs text-base-content/55">{{ $monitoring['driver_label'] }} · conexão selecionada</p>
+                    </div>
+                    @if (! $monitoring['connected'])
+                        <p class="max-w-xl text-sm text-error">{{ $monitoring['slow_query_note'] }}</p>
+                    @endif
+                </div>
+            </div>
+        </article>
+
+        <article @class(['card card-border bg-base-100', 'border-success/30' => $monitoring['recommendations'] === [], 'border-warning/40' => $monitoring['recommendations'] !== []])>
+            <div class="card-body gap-4 p-4 sm:p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span @class(['flex size-10 items-center justify-center rounded-field', 'bg-success/10 text-success' => $monitoring['recommendations'] === [], 'bg-warning/10 text-warning' => $monitoring['recommendations'] !== []])>
+                            <i data-lucide="{{ $monitoring['recommendations'] === [] ? 'circle-check' : 'circle-alert' }}" class="size-5" aria-hidden="true"></i>
+                        </span>
+                        <div>
+                            <p class="text-xs font-medium text-base-content/55">Indicadores operacionais</p>
+                            <h2 class="text-base font-semibold">{{ $monitoring['recommendations'] === [] ? 'Indicadores dentro dos limites configurados' : 'Pontos de atenção identificados' }}</h2>
+                        </div>
+                    </div>
+                    <span @class(['badge badge-soft', 'badge-success' => $monitoring['recommendations'] === [], 'badge-warning' => $monitoring['recommendations'] !== []])>
+                        {{ count($monitoring['recommendations']) }} {{ count($monitoring['recommendations']) === 1 ? 'alerta' : 'alertas' }}
+                    </span>
+                </div>
+                <p class="border-t border-base-200 pt-3 text-sm text-base-content/60">
+                    {{ $monitoring['recommendations'] === [] ? 'Esta leitura não encontrou sinais de atenção entre as métricas disponíveis.' : 'Revise os indicadores abaixo para entender o impacto e o próximo passo recomendado.' }}
+                </p>
+            </div>
+        </article>
+    </section>
 
     @if ($monitoring['recommendations'] !== [])
         <section aria-labelledby="attention-title">
@@ -22,21 +67,7 @@
                 @endforeach
             </div>
         </section>
-    @else
-        <div role="status" class="flex items-start gap-3 rounded-field border border-base-300 bg-base-100 p-4 text-sm">
-            <i data-lucide="circle-check" class="mt-0.5 size-5 text-success" aria-hidden="true"></i>
-            <div><p class="font-medium">Indicadores dentro dos limites configurados</p><p class="mt-1 text-base-content/60">Esta leitura não encontrou sinais de atenção entre as métricas disponíveis.</p></div>
-        </div>
     @endif
-
-    <div class="flex flex-wrap items-center justify-between gap-3 rounded-field border border-base-300 bg-base-100 px-4 py-3">
-        <div class="flex items-center gap-2">
-            <span @class(['status status-success status-sm' => $monitoring['connected'], 'status status-error status-sm' => ! $monitoring['connected']]) aria-hidden="true"></span>
-            <p class="text-sm font-semibold">{{ $monitoring['connected'] ? 'Banco respondendo' : 'Banco sem resposta' }}</p>
-            <span class="text-xs text-base-content/55">{{ $monitoring['connected'] ? 'Latência de '.number_format($monitoring['latency_ms'], 2, ',', '.').' ms' : 'Última leitura sem sucesso' }}</span>
-        </div>
-        <p class="text-xs text-base-content/55">{{ $monitoring['driver_label'] }} · fonte: servidor conectado</p>
-    </div>
 
     <section aria-labelledby="live-metrics-title">
         <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
