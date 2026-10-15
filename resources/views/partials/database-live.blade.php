@@ -15,16 +15,32 @@
         <div role="alert" class="alert alert-info"><i data-lucide="info" class="size-5" aria-hidden="true"></i><p class="text-sm">{{ $stats['statistics_note'] }}</p></div>
     @endif
 
-    <div class="flex flex-wrap items-center justify-between gap-3 rounded-field border border-base-300 bg-base-100 px-4 py-3">
-        <div class="flex items-center gap-2">
-            <span @class(['status status-success status-sm' => $stats['connected'], 'status status-error status-sm' => ! $stats['connected']]) aria-hidden="true"></span>
-            <p class="text-sm font-semibold">{{ $stats['connected'] ? 'Banco respondendo' : 'Banco sem resposta' }}</p>
-            @if ($stats['latency_ms'] !== null)
-                <span class="text-xs text-base-content/55">Latência {{ number_format($stats['latency_ms'], 2, ',', '.') }} ms</span>
-            @endif
-        </div>
-        <p class="text-xs text-base-content/55">Leitura somente de metadados</p>
-    </div>
+    <section aria-label="Estado da conexão" class="grid gap-3 sm:grid-cols-2">
+        <article class="card card-border bg-base-100">
+            <div class="card-body flex-row items-center gap-3 p-4">
+                <span @class(['flex size-10 shrink-0 items-center justify-center rounded-field', 'bg-success/10 text-success' => $stats['connected'], 'bg-error/10 text-error' => ! $stats['connected']])>
+                    <i data-lucide="{{ $stats['connected'] ? 'circle-check' : 'circle-alert' }}" class="size-5" aria-hidden="true"></i>
+                </span>
+                <div class="min-w-0">
+                    <p class="break-all text-xs text-base-content/55">Conexão {{ $stats['connection_name'] }}</p>
+                    <p class="font-semibold">{{ $stats['connected'] ? 'Banco respondendo' : 'Banco sem resposta' }}</p>
+                </div>
+                <span @class(['badge badge-soft ml-auto shrink-0', 'badge-success' => $stats['connected'], 'badge-error' => ! $stats['connected']])>{{ $stats['connected'] ? 'Online' : 'Indisponível' }}</span>
+            </div>
+        </article>
+        <article class="card card-border bg-base-100">
+            <div class="card-body flex-row items-center gap-3 p-4">
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-field bg-base-200 text-base-content/70">
+                    <i data-lucide="scan-search" class="size-5" aria-hidden="true"></i>
+                </span>
+                <div class="min-w-0">
+                    <p class="text-xs text-base-content/55">Escopo da coleta</p>
+                    <p class="font-semibold">Metadados do driver</p>
+                    <p class="mt-0.5 text-xs text-base-content/55">Sem varredura completa das linhas</p>
+                </div>
+            </div>
+        </article>
+    </section>
 
     <section aria-labelledby="database-summary-title">
         <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
@@ -98,22 +114,33 @@
 
     <section aria-labelledby="tables-title" class="card card-border min-w-0 bg-base-100">
         <div class="card-body min-w-0 gap-0 p-0">
-            <div class="flex flex-col gap-2 border-b border-base-300 p-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
-                <div><h2 id="tables-title" class="card-title text-base">Tabelas com maior uso</h2><p class="mt-1 text-sm text-base-content/60">{{ count($stats['tables']) }} de até 25 tabelas visíveis nesta consulta.</p></div>
+            <div class="flex flex-col gap-3 border-b border-base-300 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div class="flex items-start gap-3">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-field bg-base-200 text-base-content/70"><i data-lucide="table-properties" class="size-4" aria-hidden="true"></i></span>
+                    <div><h2 id="tables-title" class="card-title text-base">Maiores tabelas por espaço</h2><p class="mt-1 text-sm text-base-content/60">{{ count($stats['tables']) }} exibidas · até 25 maiores por espaço@if ($stats['table_count'] !== null) · de {{ number_format($stats['table_count'], 0, ',', '.') }} visíveis@endif</p></div>
+                </div>
                 @if (in_array($stats['driver'], ['mysql', 'mariadb', 'pgsql', 'sqlsrv'], true))
-                    <span class="badge badge-ghost badge-sm">Contagem de linhas estimada</span>
+                    <span class="badge badge-ghost badge-sm gap-1.5"><i data-lucide="info" class="size-3.5" aria-hidden="true"></i>Linhas estimadas pelo mecanismo</span>
                 @endif
             </div>
             @if ($stats['tables'] === [])
                 <div class="flex items-start gap-3 p-5"><i data-lucide="circle-help" class="mt-0.5 size-5 text-base-content/50" aria-hidden="true"></i><div><p class="font-medium">Nenhuma tabela disponível</p><p class="mt-1 text-sm text-base-content/60">O driver não retornou tabelas visíveis ou o usuário não tem acesso aos metadados.</p></div></div>
             @else
-                <div class="max-w-full overflow-x-auto">
-                    <table class="table table-sm">
-                        <thead><tr><th scope="col">Tabela</th><th scope="col" class="text-right">Linhas</th><th scope="col" class="text-right">Dados</th><th scope="col" class="text-right">Índices</th><th scope="col" class="text-right">Total</th></tr></thead>
+                <div class="max-h-[34rem] max-w-full overflow-x-auto overflow-y-auto focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary" role="region" aria-label="Tabela das maiores tabelas por espaço ocupado. Use as setas para navegar e rolar para ver todas as linhas." tabindex="0">
+                    <table class="table table-sm table-pin-rows min-w-[52rem]">
+                        <thead class="bg-base-200">
+                            <tr>
+                                <th scope="col"><span class="inline-flex items-center gap-2"><i data-lucide="table-properties" class="size-4 text-base-content/55" aria-hidden="true"></i>Tabela</span></th>
+                                <th scope="col" class="text-right"><span class="inline-flex items-center justify-end gap-2"><i data-lucide="list-ordered" class="size-4 text-base-content/55" aria-hidden="true"></i>Linhas</span></th>
+                                <th scope="col" class="text-right"><span class="inline-flex items-center justify-end gap-2"><i data-lucide="hard-drive" class="size-4 text-base-content/55" aria-hidden="true"></i>Dados</span></th>
+                                <th scope="col" class="text-right"><span class="inline-flex items-center justify-end gap-2"><i data-lucide="layers-3" class="size-4 text-base-content/55" aria-hidden="true"></i>Índices</span></th>
+                                <th scope="col" class="text-right"><span class="inline-flex items-center justify-end gap-2"><i data-lucide="chart-no-axes-combined" class="size-4 text-base-content/55" aria-hidden="true"></i>Total</span></th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @foreach ($stats['tables'] as $table)
                                 @php($tableSize = ($table['data_size_bytes'] ?? 0) + ($table['index_size_bytes'] ?? 0))
-                                <tr>
+                                <tr class="hover:bg-base-200/60">
                                     <th scope="row" class="max-w-72 break-all font-mono text-xs">{{ $table['name'] }}</th>
                                     <td class="whitespace-nowrap text-right tabular-nums">{{ $table['row_count'] === null ? '—' : number_format($table['row_count'], 0, ',', '.') }}</td>
                                     <td class="whitespace-nowrap text-right tabular-nums">{{ $table['data_size_bytes'] === null ? '—' : \Illuminate\Support\Number::fileSize($table['data_size_bytes'], precision: 2) }}</td>
