@@ -6,7 +6,7 @@
     Database backup and recovery for Laravel.
 </p>
 
-DB Deeper is an independent Laravel package in early development. It provides a protected dashboard at `/db-deeper` and an initial manual backup workflow through Artisan. Retention, restore, scheduling, and the backup management interface are still planned.
+DB Deeper is an independent Laravel package in early development. It provides a protected dashboard at `/db-deeper`, manual encrypted backups, and managed backup schedules. Retention and restore workflows are still planned.
 
 ## Requirements
 
@@ -86,7 +86,11 @@ Or choose a configured connection and disk explicitly:
 php artisan db-deeper:backup --connection=mysql --disk=backup-s3
 ```
 
-The command prints the resulting object path, driver, and encrypted file size. SQLite and SQL Server connections currently report that their dump drivers are unsupported. This initial version does not yet provide decryption, restore, remote read-back verification, retention, or automated scheduling; validate recovery with an isolated restore workflow before relying on backups.
+The command prints the resulting object path, driver, and encrypted file size. SQLite and SQL Server connections currently report that their dump drivers are unsupported. The package does not yet provide decryption, restore, remote read-back verification, or retention; validate recovery with an isolated restore workflow before relying on backups.
+
+## Scheduled backups and queue workers
+
+The package registers due backup routines with Laravel's Scheduler. The Scheduler checks the routine table and dispatches the `RunDatabaseBackup` job to the host application's `default` queue. The host application remains responsible for running both Laravel's scheduler and a queue worker. See the [operations guide](docs/operations.md) for production cron, local development, worker, and Horizon configuration.
 
 ## Development status
 
@@ -95,10 +99,10 @@ The command prints the resulting object path, driver, and encrypted file size. S
 - Manual MySQL/MariaDB and PostgreSQL dumps
 - Streaming gzip compression and chunked AES-256-GCM encryption
 - Laravel filesystem uploads, including configured S3-compatible, FTP, and SFTP disks
-- SQLite and SQL Server dump drivers
-- Remote integrity verification, retention, restore, scheduling, and notifications
+- Dashboard-managed backup schedules dispatched through Laravel's Scheduler and queue
+- SQLite and SQL Server dump drivers: planned
+- Remote integrity verification, retention, restore, and notifications
 - Retention and restore workflow: planned
-- Scheduled execution and failure notifications: planned
 
 Backups contain sensitive production data. Before relying on this package for recovery, completed uploads must be verified and restores exercised against an isolated database.
 

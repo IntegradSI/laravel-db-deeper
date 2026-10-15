@@ -106,7 +106,41 @@
             <h2 class="text-xl font-semibold tracking-tight">Rotinas agendadas</h2>
             <p class="text-sm text-base-content/60">Defina frequência, fuso horário, conexão e destino de cada rotina.</p>
         </div>
-        <div role="note" class="alert alert-info mb-4 items-start"><i data-lucide="info" class="mt-0.5 size-5" aria-hidden="true"></i><div><h3 class="font-semibold">O Scheduler precisa estar ativo no servidor</h3><p class="text-sm leading-5">Configure o cron do Laravel para executar <code class="font-mono">schedule:run</code> a cada minuto. Para bancos maiores, mantenha também um worker da fila ativo.</p></div></div>
+        <section aria-labelledby="backup-runtime-title" class="mb-5 card card-border bg-base-100">
+            <div class="card-body gap-5">
+                <div class="flex items-start gap-3">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-field bg-info/10 text-info"><i data-lucide="server-cog" class="size-4" aria-hidden="true"></i></span>
+                    <div><h3 id="backup-runtime-title" class="card-title text-base">O que precisa estar ativo</h3><p class="text-sm leading-5 text-base-content/65">O Laravel Scheduler identifica rotinas vencidas. O worker processa o job <code class="font-mono">RunDatabaseBackup</code>, enviado à fila <code class="font-mono">default</code> pela conexão <code class="font-mono">{{ config('queue.default', 'sync') }}</code>.</p></div>
+                </div>
+                <div class="grid gap-4 xl:grid-cols-2">
+                    <section class="rounded-box border border-base-300 p-4" aria-labelledby="scheduler-setup-title">
+                        <h4 id="scheduler-setup-title" class="font-semibold">1. Scheduler · cron a cada minuto</h4>
+                        <p class="mt-1 text-sm leading-5 text-base-content/65">O pacote registra <code class="font-mono">db-deeper:queue-due-backups</code> no Scheduler. Em produção, adicione uma única entrada cron à aplicação Laravel:</p>
+                        <pre class="mt-3 overflow-x-auto rounded-field bg-base-200 p-3 text-xs leading-5"><code>* * * * * cd /caminho/da/aplicacao &amp;&amp; php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1</code></pre>
+                        <p class="mt-2 text-xs leading-5 text-base-content/55">No desenvolvimento local, use <code class="font-mono">php artisan schedule:work</code> em um terminal.</p>
+                    </section>
+                    <section class="rounded-box border border-base-300 p-4" aria-labelledby="queue-worker-title">
+                        <h4 id="queue-worker-title" class="font-semibold">2. Worker · fila default</h4>
+                        <p class="mt-1 text-sm leading-5 text-base-content/65">Conexão atual: <code class="font-mono">{{ config('queue.default', 'sync') }}</code> · driver <code class="font-mono">{{ config('queue.connections.'.config('queue.default', 'sync').'.driver', 'sync') }}</code>. Para processar backups grandes em segundo plano, configure uma conexão assíncrona e mantenha um worker ativo:</p>
+                        @if (config('queue.connections.'.config('queue.default', 'sync').'.driver', 'sync') === 'sync')
+                            <div role="alert" class="alert alert-warning mt-3 items-start"><i data-lucide="circle-alert" class="mt-0.5 size-5" aria-hidden="true"></i><span class="text-sm leading-5">A conexão atual é síncrona. O job será executado no processo que solicitou o backup. Configure uma fila assíncrona antes de usar worker ou Horizon.</span></div>
+                        @endif
+                        <pre class="mt-3 overflow-x-auto rounded-field bg-base-200 p-3 text-xs leading-5"><code>php artisan queue:work --queue=default --timeout=3600 --tries=1</code></pre>
+                        <p class="mt-2 text-xs leading-5 text-base-content/55">Use Supervisor, systemd ou Horizon para manter o processo ativo. Configure <code class="font-mono">retry_after</code> acima do tempo máximo do worker.</p>
+                    </section>
+                </div>
+                <details class="rounded-box border border-base-300 p-4">
+                    <summary class="cursor-pointer font-semibold">Usa Laravel Horizon?</summary>
+                    <div class="mt-3 space-y-3 text-sm leading-5 text-base-content/70">
+                        <p>Inclua <code class="font-mono">default</code> na lista <code class="font-mono">queue</code> de um supervisor do Horizon. O job permite até 3.600 segundos; configure o timeout do supervisor acima disso e o <code class="font-mono">retry_after</code> da conexão Redis acima do timeout do supervisor.</p>
+                        <pre class="overflow-x-auto rounded-field bg-base-200 p-3 text-xs leading-5"><code>'queue' =&gt; ['default'],
+'tries' =&gt; 1,
+'timeout' =&gt; 3660,</code></pre>
+                        <p>Com timeout do supervisor em 3.660 segundos, mantenha <code class="font-mono">retry_after</code> acima de 3.660 e o <code class="font-mono">stopwaitsecs</code> do processo Horizon acima de 3.660. Reinicie o Horizon após alterar a configuração.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
 
         <section aria-labelledby="create-schedule-title" class="mb-6 card card-border min-w-0 bg-base-100">
             <div class="card-body gap-4">
@@ -154,7 +188,7 @@
     </section>
 
     <section id="backup-panel-history" role="tabpanel" aria-labelledby="backup-tab-history" tabindex="0" class="min-w-0" @if ($activeBackupTab !== 'history') hidden @endif>
-        <div class="mb-4 flex flex-col gap-1"><h2 class="text-xl font-semibold tracking-tight">Histórico de execuções</h2><p class="text-sm text-base-content/60">Confira o resultado, a integridade e baixe cada arquivo concluído.</p></div>
+        <div class="mb-4 flex flex-col gap-1"><h2 class="text-xl font-semibold tracking-tight">Histórico de execuções</h2><p class="text-sm text-base-content/60">Confira o resultado, a integridade e baixe cada arquivo concluído. Enquanto houver uma execução ativa, o histórico atualiza a cada 5 segundos.</p></div>
         <div id="backup-history-live" data-live-content aria-live="off">
             @include('db-deeper::partials.backups-live')
         </div>

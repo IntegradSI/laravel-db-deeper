@@ -1,4 +1,11 @@
-<div class="mb-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+@php
+    $backupStateSignature = $backups->getCollection()
+        ->map(static fn ($backup): string => $backup->id.':'.$backup->status)
+        ->implode('|');
+    $backupStateSignature = implode(':', [$queuedCount, $succeededCount, $failedCount, $backupStateSignature]);
+@endphp
+
+<div class="mb-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3" data-live-fragment data-backup-live-fragment data-backup-active="{{ $queuedCount > 0 ? 'true' : 'false' }}" data-backup-state="{{ $backupStateSignature }}">
     <div class="card card-border bg-base-100">
         <div class="card-body gap-1 px-4 py-3">
             <div class="flex items-center gap-2 text-sm text-base-content/65"><i data-lucide="clock-3" class="size-4" aria-hidden="true"></i>Em processamento</div>
@@ -20,7 +27,6 @@
             <p class="text-xs text-base-content/55">Verifique conexão, chave e disco</p>
         </div>
     </div>
-</div>
 
 @if ($backups->isEmpty())
     <div class="flex items-start gap-3 border-y border-base-300 py-6"><i data-lucide="circle-help" class="mt-0.5 size-5 text-base-content/50" aria-hidden="true"></i><div><p class="font-medium">Nenhuma execução registrada</p><p class="mt-1 text-sm text-base-content/60">Inicie um backup agora ou aguarde a próxima rotina agendada para criar o primeiro ponto de recuperação.</p></div></div>
@@ -69,3 +75,4 @@
         <div class="mt-4">{{ $backups->links() }}</div>
     @endif
 @endif
+</div>

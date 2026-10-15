@@ -9,10 +9,11 @@ it('registers the dashboard behind authentication and an explicit ability', func
         ->and($route->gatherMiddleware())->toContain('auth', 'can:viewDbDeeper');
 });
 
-it('renders the dashboard without exposing a backup action before the engine is ready', function () {
+it('renders the dashboard with backup status and links to backup management', function () {
     $this->withoutMiddleware()
         ->get('/db-deeper')
         ->assertOk()
-        ->assertSee('Backups do banco de dados')
-        ->assertSee('O pacote ainda não executa backups');
+        ->assertSee('Saúde e atividade')
+        ->assertSee('Rotinas, execuções e arquivos ficam em')
+        ->assertSee('Restauração ainda não está disponível.');
 });

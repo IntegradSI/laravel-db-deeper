@@ -376,8 +376,13 @@ if (livePanel instanceof HTMLElement) {
     const toggleButton = livePanel.querySelector('[data-refresh-toggle]');
     const toggleLabel = livePanel.querySelector('[data-refresh-toggle-label]');
     const refreshButton = livePanel.querySelector('[data-refresh-now]');
-    const intervalSeconds = Math.max(15, Number.parseInt(livePanel.dataset.refreshInterval ?? '30', 10) || 30);
+    const normalIntervalSeconds = Math.max(15, Number.parseInt(livePanel.dataset.refreshInterval ?? '30', 10) || 30);
+    const activeBackupIntervalSeconds = 5;
     const refreshUrl = new URL(livePanel.dataset.refreshUrl ?? '', window.location.href);
+    const initialBackupFragment = document.querySelector('[data-backup-live-fragment]');
+    let intervalSeconds = initialBackupFragment?.dataset.backupActive === 'true'
+        ? activeBackupIntervalSeconds
+        : normalIntervalSeconds;
     let paused = false;
     let loading = false;
     let nextRefreshAt = Date.now() + intervalSeconds * 1000;
@@ -420,6 +425,7 @@ if (livePanel instanceof HTMLElement) {
         }
 
         updateStatus('Coletando dados do banco…');
+        let backupStateChanged = false;
 
         try {
             const response = await fetch(refreshUrl, {
@@ -438,8 +444,28 @@ if (livePanel instanceof HTMLElement) {
             const markup = await response.text();
             const template = document.createElement('template');
             template.innerHTML = markup;
+            const previousBackupFragment = liveContent.querySelector('[data-backup-live-fragment]');
+            const nextBackupFragment = template.content.querySelector('[data-backup-live-fragment]');
+            backupStateChanged = previousBackupFragment instanceof HTMLElement
+                && nextBackupFragment instanceof HTMLElement
+                && previousBackupFragment.dataset.backupState !== nextBackupFragment.dataset.backupState;
             liveContent.replaceChildren(template.content);
             renderIcons(liveContent);
+
+            if (nextBackupFragment instanceof HTMLElement) {
+                intervalSeconds = nextBackupFragment.dataset.backupActive === 'true'
+                    ? activeBackupIntervalSeconds
+                    : normalIntervalSeconds;
+
+                if (backupStateChanged) {
+                    window.dispatchEvent(new CustomEvent('db-deeper:backup-status-changed', {
+                        detail: {
+                            state: nextBackupFragment.dataset.backupState ?? '',
+                            active: nextBackupFragment.dataset.backupActive === 'true',
+                        },
+                    }));
+                }
+            }
 
             const now = new Date();
 
@@ -458,7 +484,7 @@ if (livePanel instanceof HTMLElement) {
             }
 
             nextRefreshAt = Date.now() + intervalSeconds * 1000;
-            updateStatus(paused ? 'Atualização pausada' : 'Dados atualizados agora');
+            updateStatus(paused ? 'Atualização pausada' : backupStateChanged ? 'Status do backup atualizado agora' : 'Dados atualizados agora');
             updateStatusDot(paused ? 'neutral' : 'success');
         } catch {
             if (errorMessage instanceof HTMLElement) {
@@ -510,6 +536,17 @@ if (livePanel instanceof HTMLElement) {
     });
 
     refreshButton?.addEventListener('click', () => refresh(true));
+    window.addEventListener('db-deeper:backup-updated', () => refresh(true));
+    window.addEventListener('focus', () => {
+        if (!paused) {
+            refresh(true);
+        }
+    });
+    window.addEventListener('online', () => {
+        if (!paused) {
+            refresh(true);
+        }
+    });
 
     window.setInterval(() => {
         if (!paused && !document.hidden && Date.now() >= nextRefreshAt) {

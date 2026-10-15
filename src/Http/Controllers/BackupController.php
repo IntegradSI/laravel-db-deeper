@@ -47,7 +47,8 @@ class BackupController
             return back()->with('error', "Não foi possível iniciar o backup. Confira a chave ativa, o acesso ao banco e a fila configurada. Referência: {$supportId}.");
         }
 
-        return back()->with('success', "Execução #{$backup->id} enviada para processamento.");
+        return to_route('db-deeper.backups.index', ['tab' => 'history'])
+            ->with('success', "Execução #{$backup->id} enviada para processamento.");
     }
 
     public function download(Backup $backup, FilesystemFactory $filesystem): StreamedResponse
