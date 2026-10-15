@@ -1,16 +1,16 @@
 <?php
 
-namespace Integrad\LaravelDatabaseBackup;
+namespace Integrad\DbDeeper;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class LaravelDatabaseBackupServiceProvider extends PackageServiceProvider
+class DbDeeperServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
         $package
-            ->name('laravel-database-backup')
+            ->name('db-deeper')
             ->hasConfigFile()
             ->hasViews()
             ->hasAssets()

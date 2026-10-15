@@ -1,5 +1,5 @@
 <?php
 
-use Integrad\LaravelDatabaseBackup\Tests\TestCase;
+use Integrad\DbDeeper\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);

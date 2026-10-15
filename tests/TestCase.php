@@ -1,9 +1,9 @@
 <?php
 
-namespace Integrad\LaravelDatabaseBackup\Tests;
+namespace Integrad\DbDeeper\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Integrad\LaravelDatabaseBackup\LaravelDatabaseBackupServiceProvider;
+use Integrad\DbDeeper\DbDeeperServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -13,14 +13,14 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Integrad\\LaravelDatabaseBackup\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'Integrad\\DbDeeper\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 
     protected function getPackageProviders($app)
     {
         return [
-            LaravelDatabaseBackupServiceProvider::class,
+            DbDeeperServiceProvider::class,
         ];
     }
 

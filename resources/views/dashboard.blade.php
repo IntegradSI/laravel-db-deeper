@@ -3,13 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Database Backup · Integrad</title>
-    <link rel="stylesheet" href="{{ asset('vendor/database-backup/app.css') }}">
+    <title>DB Deeper · Integrad</title>
+    <link rel="stylesheet" href="{{ asset('vendor/db-deeper/app.css') }}">
 </head>
 <body>
     <main class="backup-shell">
         <header class="backup-header">
-            <a class="backup-brand" href="{{ route('database-backup.index') }}">Integrad <span>Database Backup</span></a>
+            <a class="backup-brand" href="{{ route('db-deeper.index') }}" aria-label="Integrad DB Deeper">
+                <img class="backup-logo" src="{{ asset('vendor/db-deeper/logo.svg') }}" alt="Integrad DB Deeper">
+            </a>
             <span class="backup-badge">Painel protegido</span>
         </header>
 

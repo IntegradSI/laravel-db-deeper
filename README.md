@@ -1,50 +1,54 @@
-# Integrad Laravel Database Backup
+<p align="center">
+    <img src="resources/dist/logo.svg" alt="Integrad DB Deeper — database backup for Laravel" width="420">
+</p>
 
-An independent Laravel package for creating, protecting, storing, and restoring database backups. Storage is configured through the host Laravel application's filesystem disks, including S3-compatible storage such as Cloudflare R2, FTP, and SFTP.
+<p align="center">
+    Database backup and recovery for Laravel.
+</p>
 
-The package is in early development. The current version provides the package foundation and a protected dashboard at `/database-backup`. It does **not** create, upload, prune, or restore backups yet.
+DB Deeper is an independent Laravel package in early development. It currently provides the package foundation and a protected dashboard at `/db-deeper`. Backup generation, uploads, retention, and restore are planned and are **not available yet**.
 
 ## Requirements
 
 - PHP 8.3 or newer
 - Laravel 11, 12, or 13
 
-## Local package development
+## Development setup
 
 ```bash
-git clone https://github.com/integrad/laravel-database-backup.git
-cd laravel-database-backup
+git clone https://github.com/integrad/laravel-db-deeper.git
+cd laravel-db-deeper
 composer install
 composer test
 ```
 
-The package uses Orchestra Testbench as its host Laravel application for development and tests.
+Orchestra Testbench provides the Laravel application used during local development and tests.
 
 ## Install in a Laravel application
 
-Once a tagged release is available on Packagist:
+When a tagged release is available on Packagist, install it in a Laravel application:
 
 ```bash
-composer require integrad/laravel-database-backup
-php artisan vendor:publish --tag=database-backup-config
-php artisan vendor:publish --tag=database-backup-assets
+composer require integrad/laravel-db-deeper
+php artisan vendor:publish --tag=db-deeper-config
+php artisan vendor:publish --tag=db-deeper-assets
 ```
 
-The dashboard defaults to `/database-backup`. Access is protected by Laravel's `auth` middleware and the `viewDatabaseBackups` Gate ability. Define that ability in the host application and allow only trusted operators:
+The dashboard defaults to `/db-deeper`. Access is protected by Laravel's `auth` middleware and the `viewDbDeeper` Gate ability. Define that ability in the host application and allow only trusted operators:
 
 ```php
 use Illuminate\Support\Facades\Gate;
 
-Gate::define('viewDatabaseBackups', function ($user): bool {
+Gate::define('viewDbDeeper', function ($user): bool {
     return $user->is_admin;
 });
 ```
 
-The route, middleware, and dashboard path can be changed in `config/database-backup.php`. The panel can be disabled there with `dashboard.enabled`.
+The route, middleware, and dashboard path can be changed in `config/db-deeper.php`. Set `dashboard.enabled` to `false` to disable the panel.
 
 ## Storage destinations
 
-The package uses the host application's Laravel filesystem disk, selected with `database-backup.backup.disk`. Configure that disk in the host application's `config/filesystems.php`; the package does not need storage credentials in its own config. This allows a deployment to use S3-compatible storage (including Cloudflare R2), FTP, or SFTP.
+The planned upload workflow will use a filesystem disk from the host Laravel application, selected with `db-deeper.backup.disk`. Configure the disk in the host application's `config/filesystems.php`; storage credentials belong in the host application's environment or secret manager. Laravel disks can use S3-compatible storage (including Cloudflare R2), FTP, or SFTP.
 
 Laravel's FTP and SFTP filesystem adapters are optional dependencies. Install the adapter required by the host application:
 
@@ -54,9 +58,7 @@ composer require league/flysystem-ftp:^3.0
 composer require league/flysystem-sftp-v3:^3.0
 ```
 
-Then set `database-backup.backup.disk` to the configured disk name, for example `backup-ftp` or `backup-sftp`. Keep credentials in the host application's environment or secret manager and reference them from `config/filesystems.php`.
-
-The package is still in early development: backup generation and uploads are not implemented yet. These adapters become usable by the backup workflow when that functionality is added.
+When uploads are implemented, set `db-deeper.backup.disk` to the configured disk name, such as `backup-ftp` or `backup-sftp`.
 
 ## Development status
 
@@ -68,7 +70,7 @@ The package is still in early development: backup generation and uploads are not
 - Retention and restore workflow: planned
 - Scheduled execution and failure notifications: planned
 
-Backups contain sensitive production data. Before using the package for recovery, the implementation must verify completed uploads and exercise a restore into an isolated database.
+Backups contain sensitive production data. Before relying on this package for recovery, completed uploads must be verified and restores exercised against an isolated database.
 
 ## License
 

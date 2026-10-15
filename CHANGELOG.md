@@ -1,3 +1,3 @@
 # Changelog
 
-All notable changes to `laravel-database-backup` will be documented in this file.
+All notable changes to `laravel-db-deeper` will be documented in this file.

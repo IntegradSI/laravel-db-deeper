@@ -1,11 +1,11 @@
 <?php
 
-// Configuration for Integrad Laravel Database Backup.
+// Configuration for Integrad DB Deeper.
 return [
     'dashboard' => [
         'enabled' => true,
-        'path' => 'database-backup',
-        'middleware' => ['web', 'auth', 'can:viewDatabaseBackups'],
+        'path' => 'db-deeper',
+        'middleware' => ['web', 'auth', 'can:viewDbDeeper'],
     ],
 
     'backup' => [

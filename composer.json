@@ -1,12 +1,13 @@
 {
-    "name": "integrad/laravel-database-backup",
-    "description": "A Laravel package for protected database backups with an optional dashboard.",
+    "name": "integrad/laravel-db-deeper",
+    "description": "Database backup and recovery for Laravel, with a protected dashboard.",
     "keywords": [
         "Integrad",
         "laravel",
-        "laravel-database-backup"
+        "laravel-db-deeper",
+        "database-backup"
     ],
-    "homepage": "https://github.com/integrad/laravel-database-backup",
+    "homepage": "https://github.com/integrad/laravel-db-deeper",
     "license": "PolyForm-Noncommercial-1.0.0",
     "authors": [
         {
@@ -34,12 +35,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Integrad\\LaravelDatabaseBackup\\": "src/"
+            "Integrad\\DbDeeper\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Integrad\\LaravelDatabaseBackup\\Tests\\": "tests/",
+            "Integrad\\DbDeeper\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -61,7 +62,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Integrad\\LaravelDatabaseBackup\\LaravelDatabaseBackupServiceProvider"
+                "Integrad\\DbDeeper\\DbDeeperServiceProvider"
             ]
         }
     },

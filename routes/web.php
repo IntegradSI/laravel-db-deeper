@@ -1,15 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Integrad\LaravelDatabaseBackup\Http\Controllers\DashboardController;
+use Integrad\DbDeeper\Http\Controllers\DashboardController;
 
-if (! config('database-backup.dashboard.enabled', true)) {
+if (! config('db-deeper.dashboard.enabled', true)) {
     return;
 }
 
-Route::middleware(config('database-backup.dashboard.middleware', ['web', 'auth', 'can:viewDatabaseBackups']))
-    ->prefix(config('database-backup.dashboard.path', 'database-backup'))
-    ->name('database-backup.')
+Route::middleware(config('db-deeper.dashboard.middleware', ['web', 'auth', 'can:viewDbDeeper']))
+    ->prefix(config('db-deeper.dashboard.path', 'db-deeper'))
+    ->name('db-deeper.')
     ->group(function (): void {
         Route::get('/', DashboardController::class)->name('index');
     });

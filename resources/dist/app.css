@@ -13,6 +13,7 @@ body { margin: 0; }
 .backup-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #dce5df; padding-bottom: 20px; }
 .backup-brand { color: #174b37; font-size: 18px; font-weight: 750; text-decoration: none; }
 .backup-brand span { color: #718078; font-size: 14px; font-weight: 550; margin-left: 8px; }
+.backup-logo { display: block; height: auto; width: 188px; }
 .backup-badge { background: #e3f4eb; border-radius: 999px; color: #17633e; font-size: 12px; font-weight: 650; padding: 7px 11px; }
 .backup-intro { padding: 46px 0 25px; }
 .backup-eyebrow { color: #35795a; font-size: 11px; font-weight: 750; letter-spacing: .12em; margin: 0 0 10px; }
