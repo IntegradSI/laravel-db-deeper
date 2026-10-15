@@ -56,4 +56,6 @@ Backups contain sensitive production data. Before using the package for recovery
 
 ## License
 
-The MIT License. See [LICENSE.md](LICENSE.md).
+This project is released under the MIT License. You may use, copy, modify, distribute, sublicense, and sell copies, provided the copyright and permission notice remain with copies or substantial portions of the software. The MIT license also includes its warranty and liability disclaimer. See [LICENSE.md](LICENSE.md).
+
+The license does not guarantee that a backup is complete or restorable. Read the operational [backup and recovery disclaimer](DISCLAIMER.md), and verify backups with integrity checks and restore drills before relying on them.
