@@ -102,7 +102,7 @@
     <div class="flex flex-wrap items-center gap-2 md:col-span-2 xl:col-span-3">
         <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="save" class="size-4" aria-hidden="true"></i>{{ $scheduleValue ? 'Salvar rotina' : 'Criar rotina' }}</button>
         @if ($scheduleValue)
-            <a href="{{ route('db-deeper.backups.index') }}" class="btn btn-ghost btn-sm">Cancelar</a>
+            <a href="{{ route('db-deeper.backups.index', ['tab' => 'schedules']) }}" class="btn btn-ghost btn-sm">Cancelar</a>
         @endif
     </div>
 </form>

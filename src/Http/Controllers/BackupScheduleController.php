@@ -42,7 +42,7 @@ class BackupScheduleController
     {
         $schedules->update($schedule, $request->validated());
 
-        return back()->with('success', 'Rotina de backup atualizada.');
+        return redirect()->route('db-deeper.backups.index', ['tab' => 'schedules'])->with('success', 'Rotina de backup atualizada.');
     }
 
     public function toggle(BackupSchedule $schedule, BackupScheduleService $schedules): RedirectResponse

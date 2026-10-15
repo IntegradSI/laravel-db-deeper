@@ -4,6 +4,7 @@ namespace Integrad\DbDeeper\Http\Controllers;
 
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Integrad\DbDeeper\Http\Requests\RunBackupRequest;
 use Integrad\DbDeeper\Models\Backup;
@@ -22,8 +23,17 @@ class BackupController
                 $request->input('destination_path'),
                 (string) $request->user()?->getAuthIdentifier(),
             );
-        } catch (Throwable) {
-            return back()->with('error', 'Não foi possível iniciar o backup. Confira a chave, a fila e a conexão configuradas.');
+        } catch (Throwable $exception) {
+            $supportId = (string) Str::ulid();
+
+            Log::warning('DB Deeper could not start a manual backup.', [
+                'support_id' => $supportId,
+                'connection_name' => $request->string('connection_name')->toString(),
+                'disk_name' => $request->string('disk_name')->toString(),
+                'exception' => $exception::class,
+            ]);
+
+            return back()->with('error', "Não foi possível iniciar o backup. Confira a chave ativa, o acesso ao banco e a fila configurada. Referência: {$supportId}.");
         }
 
         return back()->with('success', "Execução #{$backup->id} enviada para processamento.");

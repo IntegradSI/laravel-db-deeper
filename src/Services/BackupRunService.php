@@ -39,7 +39,7 @@ class BackupRunService
         } catch (Throwable $exception) {
             $backup->forceFill([
                 'status' => Backup::STATUS_FAILED,
-                'error_message' => 'Não foi possível iniciar a execução na fila configurada.',
+                'error_message' => 'A fila não aceitou a execução. Confira a conexão de fila e o worker do Laravel.',
                 'completed_at' => now(),
             ])->save();
 
@@ -97,7 +97,7 @@ class BackupRunService
         } catch (Throwable $exception) {
             $backup->forceFill([
                 'status' => Backup::STATUS_FAILED,
-                'error_message' => 'Falha ao gerar ou enviar o backup. Verifique as ferramentas do banco e o disco de destino.',
+                'error_message' => 'O dump não foi concluído. Confira a ferramenta mysqldump/pg_dump, o acesso ao banco, a chave ativa e a permissão de gravação no disco.',
                 'completed_at' => now(),
             ])->save();
 

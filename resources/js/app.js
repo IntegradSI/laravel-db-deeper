@@ -63,6 +63,78 @@ const renderIcons = (root = document) => createIcons({ icons, root });
 
 renderIcons();
 
+const backupTabList = document.querySelector('[data-backup-tabs]');
+
+if (backupTabList instanceof HTMLElement) {
+    const tabs = [...backupTabList.querySelectorAll('[role="tab"]')];
+
+    const activateTab = (tab, updateUrl = true) => {
+        tabs.forEach((candidate) => {
+            const selected = candidate === tab;
+            const panel = document.getElementById(candidate.getAttribute('aria-controls') ?? '');
+
+            candidate.setAttribute('aria-selected', String(selected));
+            candidate.setAttribute('tabindex', selected ? '0' : '-1');
+            candidate.classList.toggle('tab-active', selected);
+
+            if (panel instanceof HTMLElement) {
+                panel.hidden = !selected;
+            }
+        });
+
+        if (updateUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tab.dataset.backupTab ?? 'manual');
+
+            if (url.href !== window.location.href) {
+                window.history.pushState(null, '', url);
+            }
+        }
+    };
+
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activateTab(tab));
+        tab.addEventListener('keydown', (event) => {
+            const nextIndex = event.key === 'ArrowRight'
+                ? (index + 1) % tabs.length
+                : event.key === 'ArrowLeft'
+                    ? (index - 1 + tabs.length) % tabs.length
+                    : event.key === 'Home'
+                        ? 0
+                        : event.key === 'End'
+                            ? tabs.length - 1
+                            : null;
+
+            if (nextIndex !== null) {
+                event.preventDefault();
+                tabs[nextIndex]?.focus();
+                activateTab(tabs[nextIndex]);
+            }
+        });
+    });
+
+    window.addEventListener('popstate', () => {
+        const requestedTab = new URL(window.location.href).searchParams.get('tab');
+        const tab = tabs.find((candidate) => candidate.dataset.backupTab === requestedTab) ?? tabs[0];
+
+        if (tab instanceof HTMLElement) {
+            activateTab(tab, false);
+        }
+    });
+
+    document.querySelectorAll('[data-open-backup-tab]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const requestedTab = button.dataset.openBackupTab;
+            const tab = tabs.find((candidate) => candidate.dataset.backupTab === requestedTab);
+
+            if (tab instanceof HTMLElement) {
+                activateTab(tab);
+                tab.focus();
+            }
+        });
+    });
+}
+
 document.querySelectorAll('[data-copy-target]').forEach((button) => {
     button.addEventListener('click', async () => {
         const target = document.getElementById(button.dataset.copyTarget ?? '');

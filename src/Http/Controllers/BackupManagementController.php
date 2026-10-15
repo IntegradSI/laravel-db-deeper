@@ -3,6 +3,7 @@
 namespace Integrad\DbDeeper\Http\Controllers;
 
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Illuminate\View\Factory as ViewFactory;
 use Integrad\DbDeeper\Models\BackupSchedule;
 use Integrad\DbDeeper\Services\BackupEncryptionKeyService;
@@ -12,6 +13,7 @@ use Integrad\DbDeeper\Services\BackupScheduleFrequency;
 class BackupManagementController
 {
     public function __invoke(
+        Request $request,
         ViewFactory $views,
         BackupEncryptionKeyService $keys,
         BackupScheduleFrequency $frequency,
@@ -21,10 +23,16 @@ class BackupManagementController
             (array) config('database.connections', []),
             static fn (array $connection): bool => in_array($connection['driver'] ?? null, ['mysql', 'mariadb', 'pgsql'], true),
         );
+        $activeBackupTab = (string) $request->query('tab', 'manual');
+
+        if (! in_array($activeBackupTab, ['manual', 'schedules', 'history', 'encryption'], true)) {
+            $activeBackupTab = 'manual';
+        }
 
         return $views->make('db-deeper::backups', [
             'activePage' => 'backups',
             'pageTitle' => 'Backups',
+            'activeBackupTab' => $activeBackupTab,
             'autoRefresh' => true,
             'liveRefreshUrl' => route('db-deeper.live.backups'),
             'refreshInterval' => max(30, (int) config('db-deeper.dashboard.refresh_interval_seconds', 30)),
