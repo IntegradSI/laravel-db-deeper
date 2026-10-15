@@ -3,6 +3,8 @@
 namespace Integrad\DbDeeper\Services;
 
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -124,9 +126,10 @@ class BackupPreflightService
         $basePath = trim((string) ($destinationPath ?: config('db-deeper.backup.path', 'database-backups')), '/');
         $probePath = trim($basePath.'/.db-deeper-diagnostic-'.Str::uuid().'.tmp', '/');
         $written = false;
+        $disk = null;
 
         try {
-            $disk = $this->filesystem->disk($diskName);
+            $disk = $this->diagnosticDisk($diskName);
             $written = $disk->put($probePath, random_bytes(32));
 
             if (! $written) {
@@ -141,7 +144,7 @@ class BackupPreflightService
         } catch (Throwable $exception) {
             if ($written) {
                 try {
-                    $this->filesystem->disk($diskName)->delete($probePath);
+                    $disk?->delete($probePath);
                 } catch (Throwable) {
                     // Preserve the original failure while making a best-effort cleanup.
                 }
@@ -156,6 +159,24 @@ class BackupPreflightService
 
             return $this->result('disk', 'Escrita no disco', 'failed', 'Não foi possível gravar e remover o arquivo temporário. Confira credenciais, bucket, região e permissão de escrita/exclusão.');
         }
+    }
+
+    private function diagnosticDisk(string $diskName): Filesystem
+    {
+        $diskConfig = config("filesystems.disks.{$diskName}");
+
+        if (($diskConfig['driver'] ?? null) === 's3' && $this->filesystem instanceof FilesystemManager) {
+            $timeout = max(1, min(60, (int) config('db-deeper.backup.diagnostic_timeout_seconds', 12)));
+            $diskConfig['http'] = array_replace((array) ($diskConfig['http'] ?? []), [
+                'connect_timeout' => min(3, $timeout),
+                'timeout' => $timeout,
+            ]);
+            $diskConfig['retries'] = 0;
+
+            return $this->filesystem->build($diskConfig);
+        }
+
+        return $this->filesystem->disk($diskName);
     }
 
     /**

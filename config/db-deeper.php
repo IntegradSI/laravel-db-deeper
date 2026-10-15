@@ -18,6 +18,7 @@ return [
         'chunk_size' => 1048576,
         'mysql_dump_binary' => 'mysqldump',
         'pg_dump_binary' => 'pg_dump',
+        'diagnostic_timeout_seconds' => 12,
     ],
 
     'monitoring' => [

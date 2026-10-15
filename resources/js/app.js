@@ -246,6 +246,8 @@ if (backupPreflightForm instanceof HTMLFormElement) {
             checksList.replaceChildren();
         }
         showSummary('Verificando a configuração selecionada. Nenhum dump será executado.', 'info');
+        const requestController = new AbortController();
+        const requestTimeout = window.setTimeout(() => requestController.abort(), 25000);
 
         try {
             const response = await fetch(endpoint, {
@@ -258,6 +260,7 @@ if (backupPreflightForm instanceof HTMLFormElement) {
                 },
                 credentials: 'same-origin',
                 cache: 'no-store',
+                signal: requestController.signal,
             });
 
             if (!response.ok) {
@@ -289,11 +292,17 @@ if (backupPreflightForm instanceof HTMLFormElement) {
             if (submitButton instanceof HTMLButtonElement) {
                 submitButton.disabled = !diagnostic.ready;
             }
-        } catch {
+        } catch (error) {
             verifiedSignature = null;
             results.hidden = false;
-            showSummary('Não foi possível concluir o diagnóstico. Confira sua conexão, atualize a página e tente novamente.', 'error');
+            showSummary(
+                error instanceof DOMException && error.name === 'AbortError'
+                    ? 'O diagnóstico excedeu 25 segundos e foi interrompido. Confira a conexão do banco e o acesso ao disco; depois tente novamente.'
+                    : 'Não foi possível concluir o diagnóstico. Confira sua conexão, atualize a página e tente novamente.',
+                'error',
+            );
         } finally {
+            window.clearTimeout(requestTimeout);
             diagnosticButton.disabled = false;
             diagnosticButton.removeAttribute('aria-busy');
             diagnosticButton.replaceChildren();
