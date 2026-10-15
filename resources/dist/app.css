@@ -1,0 +1,35 @@
+:root {
+    color-scheme: light;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #17211e;
+    background: #f3f6f4;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+.backup-shell { width: min(1040px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 64px; }
+.backup-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #dce5df; padding-bottom: 20px; }
+.backup-brand { color: #174b37; font-size: 18px; font-weight: 750; text-decoration: none; }
+.backup-brand span { color: #718078; font-size: 14px; font-weight: 550; margin-left: 8px; }
+.backup-badge { background: #e3f4eb; border-radius: 999px; color: #17633e; font-size: 12px; font-weight: 650; padding: 7px 11px; }
+.backup-intro { padding: 46px 0 25px; }
+.backup-eyebrow { color: #35795a; font-size: 11px; font-weight: 750; letter-spacing: .12em; margin: 0 0 10px; }
+.backup-intro h1 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -.035em; margin: 0; }
+.backup-intro p { color: #66736c; margin: 10px 0 0; }
+.backup-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.backup-card { background: #fff; border: 1px solid #e2e9e4; border-radius: 14px; display: flex; flex-direction: column; gap: 9px; min-height: 140px; padding: 20px; }
+.backup-label { color: #718078; font-size: 13px; }
+.backup-card strong { font-size: 20px; overflow-wrap: anywhere; }
+.backup-card small { color: #829087; font-size: 12px; overflow-wrap: anywhere; }
+.backup-notice { align-items: flex-start; background: #fff; border: 1px solid #dbe7df; border-radius: 14px; display: flex; gap: 14px; margin-top: 22px; padding: 20px; }
+.backup-notice-icon { align-items: center; background: #e3f4eb; border-radius: 50%; color: #17633e; display: flex; flex: 0 0 26px; font-weight: 750; height: 26px; justify-content: center; }
+.backup-notice h2 { font-size: 15px; margin: 2px 0 6px; }
+.backup-notice p { color: #66736c; font-size: 14px; line-height: 1.55; margin: 0; }
+
+@media (max-width: 700px) {
+    .backup-grid { grid-template-columns: 1fr; }
+    .backup-shell { width: min(100% - 28px, 560px); padding-top: 22px; }
+    .backup-intro { padding-top: 34px; }
+}

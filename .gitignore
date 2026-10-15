@@ -1,0 +1,60 @@
+# Composer Related
+composer.lock
+/vendor
+/auth.json
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+/secrets/
+/credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Local backup artifacts
+/backups/
+/database-backups/
+/storage/backups/
+/*.sql
+*.sql.gz
+*.dump
+*.backup
+*.bak
+
+# Frontend Assets
+/node_modules
+
+# Logs
+npm-debug.log
+yarn-error.log
+*.log
+
+# Operating system files
+.DS_Store
+
+# Caches
+.phpunit.cache
+.phpunit.result.cache
+/build
+
+# IDE Helper
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+
+# Editors
+/.idea
+/.fleet
+/.vscode
+
+# Misc
+phpunit.xml
+phpstan.neon
+testbench.yaml
+/docs
+/coverage
