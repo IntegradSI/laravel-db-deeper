@@ -7,11 +7,12 @@
         "laravel-database-backup"
     ],
     "homepage": "https://github.com/integrad/laravel-database-backup",
-    "license": "MIT",
+    "license": "PolyForm-Noncommercial-1.0.0",
     "authors": [
         {
             "name": "Integrad",
-            "role": "Maintainer"
+            "role": "Maintainer",
+            "email": "josue.gomes@integrad.com.br"
         }
     ],
     "require": {
