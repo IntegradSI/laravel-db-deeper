@@ -198,7 +198,8 @@ class DatabaseBackupService
             '--routines',
             '--triggers',
             '--events',
-            '--databases='.$database,
+            '--databases',
+            $database,
         ];
     }
 
