@@ -7,8 +7,8 @@ use Integrad\DbDeeper\Services\BackupEncryptionKeyService;
 use Integrad\DbDeeper\Services\BackupPreflightService;
 
 it('passes the preflight when the key, database, dump executable and destination are available', function () {
-    config()->set('database.connections.preflight-test.driver', 'mysql');
-    config()->set('db-deeper.backup.mysql_dump_binary', PHP_BINARY);
+    config()->set('database.connections.preflight-test.driver', 'pgsql');
+    config()->set('db-deeper.backup.pg_dump_binary', PHP_BINARY);
 
     $this->mock(BackupEncryptionKeyService::class)
         ->shouldReceive('active')

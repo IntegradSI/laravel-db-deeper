@@ -94,7 +94,8 @@ class BackupPreflightService
         $binary = (string) config("db-deeper.backup.{$configKey}", $defaultBinary);
 
         try {
-            $process = new Process([$binary, '--version']);
+            $binaryOptions = $driver === 'pgsql' ? [] : ['--no-defaults'];
+            $process = new Process([$binary, ...$binaryOptions, '--version']);
             $process->setTimeout(5);
             $process->run();
 

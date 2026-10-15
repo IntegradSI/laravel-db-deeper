@@ -191,7 +191,7 @@ class DatabaseBackupService
 
         return [
             (string) config('db-deeper.backup.mysql_dump_binary', 'mysqldump'),
-            '--defaults-extra-file='.$credentialPath,
+            '--defaults-file='.$credentialPath,
             '--single-transaction',
             '--quick',
             '--hex-blob',
