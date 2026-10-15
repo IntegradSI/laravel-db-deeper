@@ -24,6 +24,8 @@ composer test
 
 Orchestra Testbench provides the Laravel application used during local development and tests.
 
+For interface changes, follow the [DB Deeper UI/UX process](UI_UX.md), adapted from the PediManga design workflow and the DaisyUI Blueprint MCP.
+
 ## Install in a Laravel application
 
 When a tagged release is available on Packagist, install it in a Laravel application:
