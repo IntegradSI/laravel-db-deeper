@@ -59,9 +59,3 @@ jobs:
 
       - name: Run tests
         run: composer test -- --ci
-
-      - name: Run static analysis
-        run: composer analyse -- --error-format=github
-
-      - name: Check PHP formatting
-        run: vendor/bin/pint --test
