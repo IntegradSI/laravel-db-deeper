@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="resources/dist/logo.svg" alt="Integrad DB Deeper — database backup for Laravel" width="420">
+    <img src="resources/dist/logo.svg" alt="Integrad DB Deeper — database backup for Laravel" width="460">
 </p>
 
 <p align="center">
