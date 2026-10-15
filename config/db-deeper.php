@@ -13,4 +13,9 @@ return [
         'path' => 'database-backups',
         'connection' => null,
     ],
+
+    'monitoring' => [
+        'slow_query_threshold_ms' => 500,
+        'slow_query_limit' => 10,
+    ],
 ];
