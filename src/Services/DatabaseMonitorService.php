@@ -20,6 +20,7 @@ class DatabaseMonitorService
      *     connected: bool,
      *     latency_ms: float|null,
      *     active_connections: int|null,
+     *     active_queries: int|null,
      *     max_connections: int|null,
      *     connection_usage_percent: float|null,
      *     buffer_hit_percent: float|null,
@@ -87,6 +88,7 @@ class DatabaseMonitorService
     {
         $status = $this->mysqlVariables($connection, 'GLOBAL STATUS', [
             'Threads_connected',
+            'Threads_running',
             'Uptime',
             'Slow_queries',
             'Innodb_buffer_pool_read_requests',
@@ -133,6 +135,7 @@ class DatabaseMonitorService
 
         return [
             'active_connections' => $activeConnections,
+            'active_queries' => $this->integerOrNull($status['threads_running'] ?? null),
             'max_connections' => $maxConnections,
             'connection_usage_percent' => $this->percentage($activeConnections, $maxConnections),
             'buffer_hit_percent' => $bufferHitPercent,
@@ -211,6 +214,11 @@ class DatabaseMonitorService
             'SELECT current_setting(?)::integer AS max_connections',
             ['max_connections'],
         )->max_connections;
+        $activeQueries = (int) $connection->selectOne(
+            "SELECT COUNT(*) AS active_queries
+             FROM pg_stat_activity
+             WHERE datname = current_database() AND state = 'active' AND pid <> pg_backend_pid()",
+        )->active_queries;
         $bufferReads = (int) $database->blks_read;
         $bufferHits = (int) $database->blks_hit;
         $bufferSamples = $bufferReads + $bufferHits;
@@ -244,6 +252,7 @@ class DatabaseMonitorService
 
         return [
             'active_connections' => (int) $database->active_connections,
+            'active_queries' => $activeQueries,
             'max_connections' => $maxConnections,
             'connection_usage_percent' => $this->percentage((int) $database->active_connections, $maxConnections),
             'buffer_hit_percent' => $bufferSamples > 0 ? round(($bufferHits / $bufferSamples) * 100, 2) : null,
@@ -275,6 +284,15 @@ class DatabaseMonitorService
             'SELECT value_in_use AS max_connections FROM sys.configurations WHERE name = ?',
             ['user connections'],
         )->max_connections;
+        $activeQueries = null;
+
+        try {
+            $activeQueries = (int) $connection->selectOne(
+                'SELECT COUNT(*) AS active_queries FROM sys.dm_exec_requests WHERE database_id = DB_ID() AND session_id <> @@SPID',
+            )->active_queries;
+        } catch (Throwable) {
+            // The rest of the dashboard remains available without request-state visibility.
+        }
         $activeConnections = (int) $sessions->active_connections;
         $maxConnections = $configuredMax > 0 ? $configuredMax : null;
         $uptimeSeconds = null;
@@ -345,6 +363,7 @@ class DatabaseMonitorService
 
         return [
             'active_connections' => $activeConnections,
+            'active_queries' => $activeQueries,
             'max_connections' => $maxConnections,
             'connection_usage_percent' => $this->percentage($activeConnections, $maxConnections),
             'buffer_hit_percent' => $bufferHitPercent,
@@ -452,6 +471,7 @@ class DatabaseMonitorService
             'connected' => false,
             'latency_ms' => null,
             'active_connections' => null,
+            'active_queries' => null,
             'max_connections' => null,
             'connection_usage_percent' => null,
             'buffer_hit_percent' => null,

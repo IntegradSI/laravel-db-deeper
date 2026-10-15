@@ -6,6 +6,7 @@ return [
         'enabled' => true,
         'path' => 'db-deeper',
         'middleware' => ['web', 'auth', 'can:viewDbDeeper'],
+        'refresh_interval_seconds' => 30,
     ],
 
     'backup' => [

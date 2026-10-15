@@ -4,8 +4,7 @@ namespace Integrad\DbDeeper\Http\Controllers;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Factory as ViewFactory;
-use Integrad\DbDeeper\Services\DatabaseMonitorService;
-use Integrad\DbDeeper\Services\DatabaseStatsService;
+use Integrad\DbDeeper\Services\DashboardSnapshotService;
 
 class DashboardController
 {
@@ -13,20 +12,21 @@ class DashboardController
 
     public function __invoke(
         ViewFactory $viewFactory,
-        DatabaseStatsService $databaseStatsService,
-        DatabaseMonitorService $databaseMonitorService,
+        DashboardSnapshotService $dashboardSnapshotService,
     ): View {
         $dashboardPath = $viewFactory->getFinder()->find(self::DASHBOARD_VIEW);
         $connectionName = config('db-deeper.backup.connection') ?? config('database.default');
 
-        return $viewFactory->file($dashboardPath, [
+        $refreshInterval = max(15, (int) config('db-deeper.dashboard.refresh_interval_seconds', 30));
+
+        return $viewFactory->file($dashboardPath, array_merge($dashboardSnapshotService->overview($connectionName), [
             'backupDisk' => config('db-deeper.backup.disk'),
             'backupPath' => config('db-deeper.backup.path'),
             'databaseConnection' => $connectionName,
-            'databaseStats' => $databaseStatsService->collect($connectionName),
-            'monitoring' => $databaseMonitorService->collect($connectionName),
             'activePage' => 'overview',
             'pageTitle' => 'Saúde do banco',
-        ]);
+            'liveRefreshUrl' => route('db-deeper.live.overview'),
+            'refreshInterval' => $refreshInterval,
+        ]));
     }
 }
