@@ -9,7 +9,7 @@ class StoreBackupScheduleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('viewDbDeeper') ?? false;
+        return true;
     }
 
     public function rules(): array
