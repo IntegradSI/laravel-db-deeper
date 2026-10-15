@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "tailwindcss -i ./resources/css/app.css -o ./resources/dist/app.css --minify",
+    "build:js": "esbuild ./resources/js/app.js --bundle --minify --outfile=./resources/dist/app.js"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "daisyui": "^5.7.50",
+    "esbuild": "^0.28.2",
+    "lucide": "^1.57.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

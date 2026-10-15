@@ -18,6 +18,8 @@ class DashboardController
             'backupPath' => config('db-deeper.backup.path'),
             'databaseConnection' => config('db-deeper.backup.connection')
                 ?? config('database.default'),
+            'activePage' => 'overview',
+            'pageTitle' => 'Visão geral',
         ]);
     }
 }
