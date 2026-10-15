@@ -10,16 +10,17 @@ class DatabaseBackupService
     public function __construct(
         private FilesystemFactory $filesystem,
         private BackupEncryptionService $encryption,
+        private BackupEncryptionKeyService $encryptionKeys,
     ) {}
 
     /**
-     * @return array{path: string, connection: string, driver: string, bytes: int, chunks: int}
+     * @return array{path: string, connection: string, driver: string, bytes: int, chunks: int, checksum: string, key_id: int|null, key_fingerprint: string}
      */
     public function create(?string $connectionName = null, ?string $diskName = null, ?string $path = null): array
     {
         $connectionName ??= (string) config('db-deeper.backup.connection', config('database.default'));
         $diskName ??= (string) config('db-deeper.backup.disk', 'local');
-        $destinationPath = trim((string) ($path ?? config('db-deeper.backup.path', 'database-backups')), '/');
+        $destinationPath = trim((string) (($path !== null && $path !== '') ? $path : config('db-deeper.backup.path', 'database-backups')), '/');
         $connectionConfig = config("database.connections.{$connectionName}");
 
         if (! is_array($connectionConfig)) {
@@ -32,11 +33,7 @@ class DatabaseBackupService
             throw new RuntimeException("O driver [{$driver}] ainda não possui exportador de backup nesta versão.");
         }
 
-        $key = config('db-deeper.backup.encryption_key');
-
-        if (! is_string($key) || $key === '') {
-            throw new RuntimeException('Configure db-deeper.backup.encryption_key antes de gerar backups.');
-        }
+        $activeKey = $this->encryptionKeys->active();
 
         $databaseName = $this->databaseName($connectionName, $driver, $connectionConfig);
         $timestamp = now()->utc()->format('Ymd\THis\Z-u');
@@ -95,7 +92,7 @@ class DatabaseBackupService
                 $chunks = $this->encryption->writeEncryptedDump(
                     $pipes[1],
                     $encryptedStream,
-                    $key,
+                    $activeKey['secret'],
                     (int) config('db-deeper.backup.chunk_size', 1048576),
                 );
             } finally {
@@ -112,9 +109,15 @@ class DatabaseBackupService
             }
 
             $stream = fopen($temporaryPath, 'rb');
+            $checksum = hash_file('sha256', $temporaryPath);
 
             if (! is_resource($stream)) {
                 throw new RuntimeException('Não foi possível ler o backup criptografado para envio.');
+            }
+
+            if ($checksum === false) {
+                fclose($stream);
+                throw new RuntimeException('Não foi possível verificar a integridade local do backup criptografado.');
             }
 
             try {
@@ -133,6 +136,9 @@ class DatabaseBackupService
                 'driver' => $driver,
                 'bytes' => (int) filesize($temporaryPath),
                 'chunks' => $chunks,
+                'checksum' => $checksum,
+                'key_id' => $activeKey['key_id'],
+                'key_fingerprint' => $activeKey['fingerprint'],
             ];
         } finally {
             foreach ($pipes as $pipe) {

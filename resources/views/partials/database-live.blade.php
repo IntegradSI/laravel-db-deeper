@@ -117,7 +117,15 @@
             <div class="flex flex-col gap-3 border-b border-base-300 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <div class="flex items-start gap-3">
                     <span class="flex size-9 shrink-0 items-center justify-center rounded-field bg-base-200 text-base-content/70"><i data-lucide="table-properties" class="size-4" aria-hidden="true"></i></span>
-                    <div><h2 id="tables-title" class="card-title text-base">Maiores tabelas por espaço</h2><p class="mt-1 text-sm text-base-content/60">{{ count($stats['tables']) }} exibidas · até 25 maiores por espaço@if ($stats['table_count'] !== null) · de {{ number_format($stats['table_count'], 0, ',', '.') }} visíveis@endif</p></div>
+                    <div>
+                        <h2 id="tables-title" class="card-title text-base">Maiores tabelas por espaço</h2>
+                        <p class="mt-1 text-sm text-base-content/60">
+                            {{ count($stats['tables']) }} exibidas · até 25 maiores por espaço
+                            @if ($stats['table_count'] !== null)
+                                · {{ number_format($stats['table_count'], 0, ',', '.') }} tabelas no banco
+                            @endif
+                        </p>
+                    </div>
                 </div>
                 @if (in_array($stats['driver'], ['mysql', 'mariadb', 'pgsql', 'sqlsrv'], true))
                     <span class="badge badge-ghost badge-sm gap-1.5"><i data-lucide="info" class="size-3.5" aria-hidden="true"></i>Linhas estimadas pelo mecanismo</span>

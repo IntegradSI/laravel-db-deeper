@@ -10,6 +10,7 @@ return [
     ],
 
     'backup' => [
+        'scheduler_enabled' => true,
         'disk' => 's3',
         'path' => 'database-backups',
         'connection' => null,

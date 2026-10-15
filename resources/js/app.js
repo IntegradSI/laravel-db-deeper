@@ -6,6 +6,7 @@ import {
     CircleHelp,
     ChartNoAxesCombined,
     Clock3,
+    Copy,
     createIcons,
     Database,
     Eye,
@@ -19,6 +20,7 @@ import {
     Pause,
     Play,
     RefreshCw,
+    Save,
     ServerCog,
     ScanSearch,
     ShieldCheck,
@@ -35,6 +37,7 @@ const icons = {
     CircleHelp,
     ChartNoAxesCombined,
     Clock3,
+    Copy,
     Database,
     Eye,
     Gauge,
@@ -47,6 +50,7 @@ const icons = {
     Pause,
     Play,
     RefreshCw,
+    Save,
     ServerCog,
     ScanSearch,
     ShieldCheck,
@@ -58,6 +62,35 @@ const icons = {
 const renderIcons = (root = document) => createIcons({ icons, root });
 
 renderIcons();
+
+document.querySelectorAll('[data-copy-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const target = document.getElementById(button.dataset.copyTarget ?? '');
+        const status = document.querySelector('[data-copy-status]');
+
+        if (!(target instanceof HTMLElement) || !navigator.clipboard) {
+            if (status instanceof HTMLElement) {
+                status.textContent = 'A cópia automática não está disponível. Selecione e copie a chave manualmente.';
+            }
+
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(target.textContent?.trim() ?? '');
+
+            if (status instanceof HTMLElement) {
+                status.textContent = 'Chave copiada para a área de transferência.';
+            }
+
+            button.textContent = 'Copiada';
+        } catch {
+            if (status instanceof HTMLElement) {
+                status.textContent = 'Não foi possível copiar. Selecione e copie a chave manualmente.';
+            }
+        }
+    });
+});
 
 const drawer = document.querySelector('#db-deeper-drawer');
 

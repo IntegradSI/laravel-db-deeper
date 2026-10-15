@@ -15,8 +15,6 @@ class DashboardLiveController
         return $viewFactory->make('db-deeper::partials.dashboard-live', array_merge(
             $dashboardSnapshotService->overview($connectionName),
             [
-                'backupDisk' => config('db-deeper.backup.disk'),
-                'backupPath' => config('db-deeper.backup.path'),
                 'databaseConnection' => $connectionName,
             ],
         ));

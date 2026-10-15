@@ -20,8 +20,6 @@ class DashboardController
         $refreshInterval = max(15, (int) config('db-deeper.dashboard.refresh_interval_seconds', 30));
 
         return $viewFactory->file($dashboardPath, array_merge($dashboardSnapshotService->overview($connectionName), [
-            'backupDisk' => config('db-deeper.backup.disk'),
-            'backupPath' => config('db-deeper.backup.path'),
             'databaseConnection' => $connectionName,
             'activePage' => 'overview',
             'pageTitle' => 'Saúde do banco',

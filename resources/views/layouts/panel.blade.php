@@ -13,9 +13,11 @@
         <input id="db-deeper-drawer" type="checkbox" class="drawer-toggle">
         <div class="drawer-content min-h-screen">
             <header class="navbar sticky top-0 z-10 flex min-h-16 flex-wrap items-center gap-y-2 border-b border-base-300 bg-base-100 px-4 py-2 sm:px-6 lg:px-8"
-                data-live-panel
-                data-refresh-url="{{ $liveRefreshUrl }}"
-                data-refresh-interval="{{ $refreshInterval }}">
+                @if ($autoRefresh ?? true)
+                    data-live-panel
+                    data-refresh-url="{{ $liveRefreshUrl }}"
+                    data-refresh-interval="{{ $refreshInterval }}"
+                @endif>
                 <div class="navbar-start gap-3">
                     <label for="db-deeper-drawer" class="btn btn-square btn-ghost drawer-button lg:hidden" aria-label="Abrir menu lateral"><i data-lucide="menu" class="size-5" aria-hidden="true"></i></label>
                     <div>
@@ -23,21 +25,23 @@
                         <p class="text-sm font-semibold">{{ $pageTitle }}</p>
                     </div>
                 </div>
-                <div class="navbar-end flex-wrap gap-2">
-                    <div class="flex items-center gap-2 text-xs text-base-content/60">
-                        <span class="status status-success status-sm" data-refresh-dot aria-hidden="true"></span>
-                        <span data-refresh-status role="status" aria-live="polite">Atualização automática ativa</span>
-                        <span aria-hidden="true">·</span>
-                        <span class="hidden sm:inline">Próxima em <span class="font-mono tabular-nums" data-refresh-countdown>{{ $refreshInterval }}s</span></span>
+                @if ($autoRefresh ?? true)
+                    <div class="navbar-end flex-wrap gap-2">
+                        <div class="flex items-center gap-2 text-xs text-base-content/60">
+                            <span class="status status-success status-sm" data-refresh-dot aria-hidden="true"></span>
+                            <span data-refresh-status role="status" aria-live="polite">Atualização automática ativa</span>
+                            <span aria-hidden="true">·</span>
+                            <span class="hidden sm:inline">Próxima em <span class="font-mono tabular-nums" data-refresh-countdown>{{ $refreshInterval }}s</span></span>
+                        </div>
+                        <time class="text-xs tabular-nums text-base-content/55" data-refresh-last-updated datetime="{{ now()->toIso8601String() }}">{{ now()->format('H:i:s') }}</time>
+                        <button type="button" class="btn btn-ghost btn-sm" data-refresh-toggle aria-pressed="false" aria-label="Pausar atualização automática">
+                            <i data-lucide="pause" data-refresh-icon class="size-4" aria-hidden="true"></i><span data-refresh-toggle-label>Pausar</span>
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" data-refresh-now>
+                            <i data-lucide="refresh-cw" class="size-4" aria-hidden="true"></i><span>Atualizar</span>
+                        </button>
                     </div>
-                    <time class="text-xs tabular-nums text-base-content/55" data-refresh-last-updated datetime="{{ now()->toIso8601String() }}">{{ now()->format('H:i:s') }}</time>
-                    <button type="button" class="btn btn-ghost btn-sm" data-refresh-toggle aria-pressed="false" aria-label="Pausar atualização automática">
-                        <i data-lucide="pause" data-refresh-icon class="size-4" aria-hidden="true"></i><span data-refresh-toggle-label>Pausar</span>
-                    </button>
-                    <button type="button" class="btn btn-primary btn-sm" data-refresh-now>
-                        <i data-lucide="refresh-cw" class="size-4" aria-hidden="true"></i><span>Atualizar</span>
-                    </button>
-                </div>
+                @endif
             </header>
             <main class="mx-auto w-full max-w-[100rem] px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
                 <p class="mb-4 hidden rounded-field border border-error/30 bg-error/5 px-4 py-3 text-sm text-error" data-refresh-error role="alert"></p>
@@ -63,6 +67,8 @@
                 <ul class="menu menu-sm w-full">
                     <li><a @class(['menu-active' => $activePage === 'overview']) href="{{ route('db-deeper.index') }}" @if ($activePage === 'overview') aria-current="page" @endif><i data-lucide="activity" class="size-4" aria-hidden="true"></i>Saúde e atividade</a></li>
                     <li><a @class(['menu-active' => $activePage === 'database']) href="{{ route('db-deeper.database') }}" @if ($activePage === 'database') aria-current="page" @endif><i data-lucide="database" class="size-4" aria-hidden="true"></i>Banco e tabelas</a></li>
+                    <li><a @class(['menu-active' => $activePage === 'backups']) href="{{ route('db-deeper.backups.index') }}" @if ($activePage === 'backups') aria-current="page" @endif><i data-lucide="archive" class="size-4" aria-hidden="true"></i>Backups</a></li>
+                    <li><a @class(['menu-active' => $activePage === 'backup-keys']) href="{{ route('db-deeper.backups.keys.index') }}" @if ($activePage === 'backup-keys') aria-current="page" @endif><i data-lucide="shield-check" class="size-4" aria-hidden="true"></i>Criptografia</a></li>
                 </ul>
                 <div class="mt-auto border-t border-base-300 pt-4">
                     <div class="flex items-center gap-3 rounded-field px-3 py-2">
