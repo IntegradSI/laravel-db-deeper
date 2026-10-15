@@ -2,6 +2,8 @@
 
 namespace Integrad\DbDeeper;
 
+use Integrad\DbDeeper\Console\Commands\GenerateBackupKeyCommand;
+use Integrad\DbDeeper\Console\Commands\GenerateDatabaseBackupCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -14,6 +16,10 @@ class DbDeeperServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasAssets()
-            ->hasRoutes('web');
+            ->hasRoutes('web')
+            ->hasCommands([
+                GenerateBackupKeyCommand::class,
+                GenerateDatabaseBackupCommand::class,
+            ]);
     }
 }

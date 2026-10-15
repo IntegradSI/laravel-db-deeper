@@ -6,7 +6,7 @@
     Database backup and recovery for Laravel.
 </p>
 
-DB Deeper is an independent Laravel package in early development. It currently provides the package foundation and a protected dashboard at `/db-deeper`. Backup generation, uploads, retention, and restore are planned and are **not available yet**.
+DB Deeper is an independent Laravel package in early development. It provides a protected dashboard at `/db-deeper` and an initial manual backup workflow through Artisan. Retention, restore, scheduling, and the backup management interface are still planned.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ The route, middleware, and dashboard path can be changed in `config/db-deeper.ph
 
 ## Storage destinations
 
-The planned upload workflow will use a filesystem disk from the host Laravel application, selected with `db-deeper.backup.disk`. Configure the disk in the host application's `config/filesystems.php`; storage credentials belong in the host application's environment or secret manager. Laravel disks can use S3-compatible storage (including Cloudflare R2), FTP, or SFTP.
+The backup workflow uses a filesystem disk from the host Laravel application, selected with `db-deeper.backup.disk`. Configure the disk in the host application's `config/filesystems.php`; storage credentials belong in the host application's environment or secret manager. Laravel disks can use S3-compatible storage (including Cloudflare R2), FTP, or SFTP.
 
 Laravel's FTP and SFTP filesystem adapters are optional dependencies. Install the adapter required by the host application:
 
@@ -60,15 +60,43 @@ composer require league/flysystem-ftp:^3.0
 composer require league/flysystem-sftp-v3:^3.0
 ```
 
-When uploads are implemented, set `db-deeper.backup.disk` to the configured disk name, such as `backup-ftp` or `backup-sftp`.
+Set `db-deeper.backup.disk` to the configured disk name, such as `backup-ftp` or `backup-sftp`.
+
+## Create a manual backup
+
+The first backup version supports MySQL/MariaDB with `mysqldump` and PostgreSQL with `pg_dump`. Install the matching client utility on the machine that runs Artisan. Backups are streamed through gzip compression and chunked AES-256-GCM encryption, then uploaded to the selected Laravel filesystem disk. The temporary artifact and temporary database credential file are restricted to the current OS user and removed after the command finishes.
+
+Generate a key once and save it in the host application's secret manager:
+
+```bash
+php artisan db-deeper:backup-key
+```
+
+Set the printed Base64 value as `db-deeper.backup.encryption_key` in the host application's published `config/db-deeper.php`. Keep the key separately from the backup destination. Losing it makes those backups unreadable. Do not commit the key or include it in logs.
+
+Run a backup using the configured connection and disk:
+
+```bash
+php artisan db-deeper:backup
+```
+
+Or choose a configured connection and disk explicitly:
+
+```bash
+php artisan db-deeper:backup --connection=mysql --disk=backup-s3
+```
+
+The command prints the resulting object path, driver, and encrypted file size. SQLite and SQL Server connections currently report that their dump drivers are unsupported. This initial version does not yet provide decryption, restore, remote read-back verification, retention, or automated scheduling; validate recovery with an isolated restore workflow before relying on backups.
 
 ## Development status
 
 - Package skeleton and Composer metadata
 - Configurable, protected dashboard
-- Database dump drivers: planned
-- Streaming compression and authenticated encryption: planned
-- S3-compatible, FTP, and SFTP uploads and integrity verification: planned
+- Manual MySQL/MariaDB and PostgreSQL dumps
+- Streaming gzip compression and chunked AES-256-GCM encryption
+- Laravel filesystem uploads, including configured S3-compatible, FTP, and SFTP disks
+- SQLite and SQL Server dump drivers
+- Remote integrity verification, retention, restore, scheduling, and notifications
 - Retention and restore workflow: planned
 - Scheduled execution and failure notifications: planned
 

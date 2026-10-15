@@ -13,6 +13,8 @@ return [
         'disk' => 's3',
         'path' => 'database-backups',
         'connection' => null,
+        'encryption_key' => null,
+        'chunk_size' => 1048576,
     ],
 
     'monitoring' => [
